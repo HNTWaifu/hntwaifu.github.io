@@ -1,22 +1,350 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>18+ AI Anime Art</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NSFW Anime AI</title>
+<style>
+/* =======================
+   GENERAL STYLES
+======================= */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: #f1f1f1;
+}
+
+/* =======================
+   HEADER
+======================= */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  background-color: #111;
+  z-index: 10;
+  border-bottom: 2px solid purple;
+}
+
+header .logo {
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+header .telegram-btn {
+  color: #00aaff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* =======================
+   AGE GATE POPUP
+======================= */
+#ageGate {
+  position: fixed;
+  top:0; left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.9);
+  display:flex;
+  flex-direction: column;
+  justify-content:center;
+  align-items:center;
+  z-index: 1000;
+}
+
+#ageGate h1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+#ageGate button {
+  padding: 15px 30px;
+  margin: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  background: transparent;
+  border: 2px solid purple;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+#ageGate button:hover {
+  background: purple;
+}
+
+/* =======================
+   BLURRED HOMEPAGE WHEN AGE GATE
+======================= */
+#content.blur {
+  filter: blur(5px);
+}
+
+/* =======================
+   CATEGORY GRID
+======================= */
+.categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.category-box {
+  position: relative;
+  cursor: pointer;
+  border: 2px solid purple;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.category-box img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.category-box span {
+  position: absolute;
+  bottom:0;
+  width:100%;
+  text-align:center;
+  background: rgba(0,0,0,0.7);
+  color:#fff;
+  padding:5px 0;
+  font-weight: bold;
+}
+
+/* =======================
+   IMAGE FEED
+======================= */
+.image-feed {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
+  gap: 15px;
+  padding: 20px;
+}
+
+.image-feed img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* =======================
+   LIGHTBOX
+======================= */
+#lightbox {
+  display:none;
+  position: fixed;
+  top:0; left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.95);
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+#lightbox img {
+  max-width: 90%;
+  max-height: 90%;
+}
+
+/* =======================
+   SEARCH BAR
+======================= */
+#searchBar {
+  width: 90%;
+  max-width: 400px;
+  margin: 0 auto 20px auto;
+  display: block;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 2px solid purple;
+  background: #111;
+  color: #fff;
+}
+
+/* =======================
+   TELEGRAM PAGE
+======================= */
+#telegramPage {
+  display: none;
+  padding: 20px;
+}
+
+#telegramPage a {
+  color: #00aaff;
+  font-size: 20px;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 15px;
+}
+
+#telegramPage ul {
+  margin:0;
+  padding-left: 20px;
+}
+</style>
 </head>
 <body>
 
-<h1>🔞 18+ AI Anime Art</h1>
+<!-- AGE GATE POPUP -->
+<div id="ageGate">
+  <h1>🔞 NSFW Anime AI</h1>
+  <button id="enterBtn">I'm 18 or above - Enter</button>
+  <button id="exitBtn">I'm under 18 - Exit</button>
+</div>
 
-<p>
-This website contains adult AI-generated anime content.<br>
-All characters are fictional.<br>
-No minors.
-</p>
+<!-- MAIN CONTENT -->
+<div id="content" class="blur">
+  <!-- HEADER -->
+  <header>
+    <div class="logo" onclick="goHome()">NSFW Anime AI</div>
+    <div class="telegram-btn" onclick="showTelegram()">Telegram</div>
+  </header>
 
-<p>
-More content coming soon.
-</p>
+  <!-- SEARCH BAR -->
+  <input type="text" id="searchBar" placeholder="Search categories or images..." onkeyup="searchImages()">
 
+  <!-- CATEGORY GRID -->
+  <div class="categories" id="categories">
+    <div class="category-box" onclick="openCategory('Anal')">
+      <img src="https://via.placeholder.com/300x200?text=Anal" alt="Anal">
+      <span>Anal</span>
+    </div>
+    <div class="category-box" onclick="openCategory('Solo')">
+      <img src="https://via.placeholder.com/300x200?text=Solo" alt="Solo">
+      <span>Solo</span>
+    </div>
+    <div class="category-box" onclick="openCategory('Couple')">
+      <img src="https://via.placeholder.com/300x200?text=Couple" alt="Couple">
+      <span>Couple</span>
+    </div>
+    <div class="category-box" onclick="openCategory('Milf')">
+      <img src="https://via.placeholder.com/300x200?text=Milf" alt="Milf">
+      <span>Milf</span>
+    </div>
+    <div class="category-box" onclick="openCategory('Big Boobs')">
+      <img src="https://via.placeholder.com/300x200?text=Big+Boobs" alt="Big Boobs">
+      <span>Big Boobs</span>
+    </div>
+    <div class="category-box" onclick="openCategory('Futanari/Shemale')">
+      <img src="https://via.placeholder.com/300x200?text=Futanari/Shemale" alt="Futanari/Shemale">
+      <span>Futanari/Shemale</span>
+    </div>
+  </div>
+
+  <!-- IMAGE FEED -->
+  <div class="image-feed" id="imageFeed">
+    <!-- Placeholder images -->
+    <img src="https://via.placeholder.com/300x300?text=Image1" alt="Image1">
+    <img src="https://via.placeholder.com/300x300?text=Image2" alt="Image2">
+    <img src="https://via.placeholder.com/300x300?text=Image3" alt="Image3">
+    <img src="https://via.placeholder.com/300x300?text=Image4" alt="Image4">
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <img id="lightboxImg" src="">
+</div>
+
+<!-- TELEGRAM PAGE -->
+<div id="telegramPage">
+  <a href="#" target="_blank">Join 🔞+ Telegram Channel</a>
+  <ul>
+    <li>more contents here</li>
+    <li>full sets</li>
+    <li>story-based content</li>
+    <li>premium content</li>
+  </ul>
+</div>
+
+<script>
+// ========================
+// AGE GATE LOGIC
+// ========================
+const ageGate = document.getElementById('ageGate');
+const content = document.getElementById('content');
+
+document.getElementById('enterBtn').addEventListener('click', ()=>{
+  ageGate.style.display = 'none';
+  content.classList.remove('blur');
+});
+
+document.getElementById('exitBtn').addEventListener('click', ()=>{
+  // Try to redirect back if possible, else go to Google
+  if(document.referrer){
+    window.location.href = document.referrer;
+  } else {
+    window.location.href = 'https://www.google.com';
+  }
+});
+
+// ========================
+// CATEGORY LOGIC
+// ========================
+function openCategory(category){
+  alert('Category page placeholder: ' + category + '. You can replace with category-specific page later.');
+}
+
+// ========================
+// IMAGE LIGHTBOX
+// ========================
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+
+document.querySelectorAll('.image-feed img').forEach(img=>{
+  img.addEventListener('click', ()=>{
+    lightboxImg.src = img.src;
+    lightbox.style.display = 'flex';
+  });
+});
+
+function closeLightbox(){
+  lightbox.style.display = 'none';
+}
+
+// ========================
+// SEARCH BAR
+// ========================
+function searchImages(){
+  let input = document.getElementById('searchBar').value.toLowerCase();
+  document.querySelectorAll('.categories .category-box, .image-feed img').forEach(el=>{
+    if(el.alt.toLowerCase().includes(input)){
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+
+// ========================
+// TELEGRAM PAGE
+// ========================
+function showTelegram(){
+  document.getElementById('telegramPage').style.display = 'block';
+  content.style.display = 'none';
+}
+
+// ========================
+// LOGO CLICK
+// ========================
+function goHome(){
+  document.getElementById('telegramPage').style.display = 'none';
+  content.style.display = 'block';
+}
+</script>
 </body>
-</html>
+      </html>
