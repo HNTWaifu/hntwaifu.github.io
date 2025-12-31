@@ -216,30 +216,6 @@ fetch('images/data.json')
       categoriesDiv.appendChild(box);
     });
   });
-
-// =========================
-// LOAD FEED DYNAMICALLY
-// =========================
-const feedDiv = document.getElementById("feed");
-
-fetch('images/data.json')
-  .then(res => res.json())
-  .then(data => {
-    data.sort(() => Math.random() - 0.5); // random order
-
-    data.forEach(item => {
-      const img = document.createElement("img");
-      img.src = 'images/' + item.file;
-      img.alt = item.title;
-
-      img.onclick = () => {
-        document.getElementById("lightboxImg").src = img.src;
-        document.getElementById("lightbox").style.display = "flex";
-      };
-
-      feedDiv.appendChild(img);
-    });
-  });
 </script>
 
 </body>
