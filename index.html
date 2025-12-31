@@ -142,69 +142,67 @@ header {
   <a class="telegram" href="telegram.html">Telegram</a>
 </header>
 
-<!-- CATEGORIES -->
-<div class="categories">
-  <a class="category-box" href="#anal">
-    <img src="images/categories/anal1.jpg">
-    <div class="category-name">Anal</div>
-  </a>
-
-  <a class="category-box" href="#solo">
-    <img src="images/categories/solo1.jpg">
-    <div class="category-name">Solo</div>
-  </a>
-
-  <a class="category-box" href="#couple">
-    <img src="images/categories/couple1.jpg">
-    <div class="category-name">Couple</div>
-  </a>
-
-  <a class="category-box" href="#milf">
-    <img src="images/categories/milf1.jpg">
-    <div class="category-name">Milf</div>
-  </a>
-
-  <a class="category-box" href="#bigboobs">
-    <img src="images/categories/bigboobs1.jpg">
-    <div class="category-name">Big Boobs</div>
-  </a>
-
-  <a class="category-box" href="#shemale">
-    <img src="images/categories/shemale1.jpg">
-    <div class="category-name">Futanari / Shemale</div>
-  </a>
-</div>
-
-<!-- FEED -->
-<div class="feed" id="feed"></div>
-
-<!-- LIGHTBOX -->
-<div id="lightbox" onclick="this.style.display='none'">
-  <img id="lightboxImg">
-</div>
+<!-- DYNAMIC CATEGORIES -->
+<div class="categories" id="categories"></div>
 
 <script>
-function enterSite() {
-  document.getElementById("ageGate").style.display = "none";
-}
+// Fetch images from data.json
+fetch('images/data.json')
+  .then(response => response.json())
+  .then(data => {
+    const categoriesDiv = document.getElementById('categories');
+    
+    // Shuffle array for random order
+    data.sort(() => Math.random() - 0.5);
 
-function exitSite() {
-  history.back();
-}
+    data.forEach(item => {
+      // Create category box
+      const box = document.createElement('a');
+      box.className = 'category-box';
+      box.href = `category.html?cat=${encodeURIComponent(item.category)}`;
 
-// FEED AUTO LOAD
-const feed = document.getElementById("feed");
-for (let i = 1; i <= 50; i++) {
-  const img = document.createElement("img");
-  img.src = `images/feed/img${i}.jpg`;
-  img.onerror = () => img.remove();
-  img.onclick = () => {
-    document.getElementById("lightboxImg").src = img.src;
-    document.getElementById("lightbox").style.display = "flex";
-  };
-  feed.appendChild(img);
-}
+      // Create image element
+      const img = document.createElement('img');
+      img.src = 'images/' + item.file;
+      img.alt = item.title;
+
+      // Category name
+      const name = document.createElement('div');
+      name.className = 'category-name';
+      name.textContent = item.category;
+
+      // Append image + name
+      box.appendChild(img);
+      box.appendChild(name);
+
+      // Append box to categories div
+      categoriesDiv.appendChild(box);
+    });
+  });
 </script>
+
+// FEED DYNAMIC LOAD
+const feedDiv = document.getElementById("feed");
+fetch('images/data.json')
+  .then(res => res.json())
+  .then(data => {
+    // Shuffle for random display
+    data.sort(() => Math.random() - 0.5);
+
+    data.forEach(item => {
+      const img = document.createElement("img");
+      img.src = 'images/' + item.file;
+      img.alt = item.title;
+
+      // Click to open lightbox
+      img.onclick = () => {
+        document.getElementById("lightboxImg").src = img.src;
+        document.getElementById("lightbox").style.display = "flex";
+      };
+
+      feedDiv.appendChild(img);
+    });
+  });
 
 </body>
 </html>
