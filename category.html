@@ -90,19 +90,35 @@ document.getElementById("categoryTitle").innerText = category;
 // LOAD CATEGORY IMAGES
 const feed = document.getElementById("feed");
 
-for (let i = 1; i <= 100; i++) {
-  const img = document.createElement("img");
-  img.src = `images/${category.toLowerCase()}/img${i}.jpg`;
+fetch('images/data.json')
+  .then(res => res.json())
+  .then(data => {
+    const feed = document.getElementById("feed");
 
-  img.onerror = () => img.remove();
+    // Filter only images of this category
+    const categoryImages = data.filter(item => item.category.toLowerCase() === category.toLowerCase());
 
-  img.onclick = () => {
-    document.getElementById("lightboxImg").src = img.src;
-    document.getElementById("lightbox").style.display = "flex";
-  };
+    // Shuffle array for random order
+    categoryImages.sort(() => Math.random() - 0.5);
 
-  feed.appendChild(img);
-}
+    categoryImages.forEach(item => {
+      const img = document.createElement("img");
+      img.src = 'images/' + item.file; // uses file path from data.json
+      img.alt = item.title;
+
+      img.onerror = () => {
+        console.error('Category image failed to load:', img.src);
+        img.style.background = 'red';
+      };
+
+      img.onclick = () => {
+        document.getElementById("lightboxImg").src = img.src;
+        document.getElementById("lightbox").style.display = "flex";
+      };
+
+      feed.appendChild(img);
+    });
+  });
 </script>
 
 </body>
