@@ -204,7 +204,7 @@ fetch('images/data.json')
       box.href = `category.html?cat=${encodeURIComponent(item.category)}`;
 
       const img = document.createElement('img');
-      img.src = 'images/' + item.file;
+      img.src = item.file;
       img.alt = item.title;
 
       const name = document.createElement('div');
