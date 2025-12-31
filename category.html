@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Category</title>
+
+<style>
+body {
+  margin: 0;
+  background: #0b0b0f;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  padding: 10px 15px;
+  border-bottom: 1px solid purple;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header a {
+  color: #00aaff;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+h2 {
+  text-align: center;
+  margin: 15px 0;
+  text-transform: capitalize;
+}
+
+.feed {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+  padding: 10px;
+}
+
+.feed img {
+  width: 100%;
+  border: 1px solid purple;
+  cursor: pointer;
+}
+
+/* LIGHTBOX */
+#lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.95);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#lightbox img {
+  max-width: 95%;
+  max-height: 95%;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <a href="index.html">← Home</a>
+  <a href="telegram.html">Telegram</a>
+</header>
+
+<h2 id="categoryTitle"></h2>
+
+<div class="feed" id="feed"></div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.style.display='none'">
+  <img id="lightboxImg">
+</div>
+
+<script>
+// GET CATEGORY NAME
+const params = new URLSearchParams(window.location.search);
+const category = params.get("cat") || "general";
+
+document.getElementById("categoryTitle").innerText = category;
+
+// LOAD CATEGORY IMAGES
+const feed = document.getElementById("feed");
+
+for (let i = 1; i <= 100; i++) {
+  const img = document.createElement("img");
+  img.src = `images/${category.toLowerCase()}/img${i}.jpg`;
+
+  img.onerror = () => img.remove();
+
+  img.onclick = () => {
+    document.getElementById("lightboxImg").src = img.src;
+    document.getElementById("lightbox").style.display = "flex";
+  };
+
+  feed.appendChild(img);
+}
+</script>
+
+</body>
+</html>
