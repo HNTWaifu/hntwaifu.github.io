@@ -44,6 +44,7 @@ h2 {
   width: 100%;
   border: 1px solid purple;
   cursor: pointer;
+  object-fit: cover;
 }
 
 /* LIGHTBOX */
@@ -77,38 +78,44 @@ h2 {
 
 <!-- LIGHTBOX -->
 <div id="lightbox" onclick="this.style.display='none'">
-  <img id="lightboxImg">
+  <img id="lightboxImg" alt="Preview">
 </div>
 
 <script>
-// GET CATEGORY NAME
+// GET CATEGORY NAME FROM URL
 const params = new URLSearchParams(window.location.search);
 const category = params.get("cat") || "general";
-
 document.getElementById("categoryTitle").innerText = category;
 
-// LOAD CATEGORY IMAGES
-const feed = document.getElementById("feed");
-
+// LOAD IMAGES FOR THIS CATEGORY
 fetch('images/data.json')
   .then(res => res.json())
   .then(data => {
     const feed = document.getElementById("feed");
 
-    // Filter only images of this category
+    // Filter data to only include images of the selected category
     const categoryImages = data.filter(item => item.category.toLowerCase() === category.toLowerCase());
 
-    // Shuffle array for random order
+    if (categoryImages.length === 0) {
+      const msg = document.createElement("p");
+      msg.textContent = "No images found in this category.";
+      msg.style.textAlign = "center";
+      feed.appendChild(msg);
+      return;
+    }
+
+    // Shuffle images randomly
     categoryImages.sort(() => Math.random() - 0.5);
 
+    // Add each image to the feed
     categoryImages.forEach(item => {
       const img = document.createElement("img");
-      img.src = 'images/' + item.file; // uses file path from data.json
+      img.src = 'images/' + item.file;
       img.alt = item.title;
 
       img.onerror = () => {
-        console.error('Category image failed to load:', img.src);
-        img.style.background = 'red';
+        console.error("Failed to load:", img.src);
+        img.style.background = "red"; // highlight broken images
       };
 
       img.onclick = () => {
@@ -118,6 +125,14 @@ fetch('images/data.json')
 
       feed.appendChild(img);
     });
+  })
+  .catch(err => {
+    console.error("Failed to load data.json:", err);
+    const feed = document.getElementById("feed");
+    const msg = document.createElement("p");
+    msg.textContent = "Failed to load images.";
+    msg.style.textAlign = "center";
+    feed.appendChild(msg);
   });
 </script>
 
