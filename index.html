@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6,6 +6,9 @@
 <title>NSFW AI Anime</title>
 
 <style>
+/* =========================
+   GENERAL STYLES
+========================= */
 body {
   margin: 0;
   background: #0b0b0f;
@@ -15,7 +18,9 @@ body {
 
 a { text-decoration: none; color: inherit; }
 
-/* HEADER */
+/* =========================
+   HEADER
+========================= */
 header {
   display: flex;
   justify-content: space-between;
@@ -26,14 +31,18 @@ header {
 
 .logo img {
   height: 40px;
+  cursor: pointer;
 }
 
 .telegram {
   color: #00aaff;
   font-weight: bold;
+  cursor: pointer;
 }
 
-/* AGE GATE */
+/* =========================
+   AGE GATE
+========================= */
 #ageGate {
   position: fixed;
   inset: 0;
@@ -66,7 +75,9 @@ header {
   cursor: pointer;
 }
 
-/* CATEGORIES */
+/* =========================
+   CATEGORIES
+========================= */
 .categories {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -82,7 +93,7 @@ header {
 .category-box img {
   width: 100%;
   height: 180px;
-  object-fit: contain;
+  object-fit: cover;
   background: #000;
 }
 
@@ -92,7 +103,9 @@ header {
   font-size: 14px;
 }
 
-/* FEED */
+/* =========================
+   FEED
+========================= */
 .feed {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -104,9 +117,12 @@ header {
   width: 100%;
   border: 1px solid purple;
   cursor: pointer;
+  object-fit: cover;
 }
 
-/* LIGHTBOX */
+/* =========================
+   LIGHTBOX
+========================= */
 #lightbox {
   position: fixed;
   inset: 0;
@@ -114,6 +130,7 @@ header {
   display: none;
   justify-content: center;
   align-items: center;
+  z-index: 10000;
 }
 
 #lightbox img {
@@ -128,16 +145,17 @@ header {
 <!-- AGE GATE -->
 <div id="ageGate">
   <div class="age-box">
-    <img src="images/logo/logo.png">
+    <img src="images/logo/logo.png" alt="Logo">
     <p>You must be 18+</p>
     <button class="age-btn" onclick="enterSite()">I'm 18 or above – Enter</button>
     <button class="age-btn" onclick="exitSite()">I'm under 18 – Exit</button>
   </div>
 </div>
 
+<!-- HEADER -->
 <header>
   <a class="logo" href="">
-    <img src="images/logo/logo.png">
+    <img src="images/logo/logo.png" alt="Logo" onclick="enterSite()">
   </a>
   <a class="telegram" href="telegram.html">Telegram</a>
 </header>
@@ -145,43 +163,18 @@ header {
 <!-- DYNAMIC CATEGORIES -->
 <div class="categories" id="categories"></div>
 
-<script>
-// Fetch images from data.json
-fetch('images/data.json')
-  .then(response => response.json())
-  .then(data => {
-    const categoriesDiv = document.getElementById('categories');
-    
-    // Shuffle array for random order
-    data.sort(() => Math.random() - 0.5);
+<!-- DYNAMIC FEED -->
+<div class="feed" id="feed"></div>
 
-    data.forEach(item => {
-      // Create category box
-      const box = document.createElement('a');
-      box.className = 'category-box';
-      box.href = `category.html?cat=${encodeURIComponent(item.category)}`;
-
-      // Create image element
-      const img = document.createElement('img');
-      img.src = 'images/' + item.file;
-      img.alt = item.title;
-
-      // Category name
-      const name = document.createElement('div');
-      name.className = 'category-name';
-      name.textContent = item.category;
-
-      // Append image + name
-      box.appendChild(img);
-      box.appendChild(name);
-
-      // Append box to categories div
-      categoriesDiv.appendChild(box);
-    });
-  });
-</script>
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="this.style.display='none'">
+  <img id="lightboxImg" alt="Preview">
+</div>
 
 <script>
+// =========================
+// AGE VERIFICATION
+// =========================
 function enterSite() {
   document.getElementById("ageGate").style.display = "none";
 }
@@ -190,17 +183,22 @@ function exitSite() {
   history.back();
 }
 
-/* =========================
-   LOAD CATEGORIES (TOP)
-========================= */
+// =========================
+// LOAD CATEGORIES DYNAMICALLY
+// =========================
 fetch('images/data.json')
   .then(res => res.json())
   .then(data => {
     const categoriesDiv = document.getElementById('categories');
+    data.sort(() => Math.random() - 0.5); // random order
 
-    data.sort(() => Math.random() - 0.5);
+    // Use a Set to only show unique categories at top
+    const uniqueCategories = new Set();
+    data.forEach(item => uniqueCategories.add(item.category));
 
-    data.forEach(item => {
+    uniqueCategories.forEach(cat => {
+      const item = data.find(d => d.category === cat); // first image of category
+
       const box = document.createElement('a');
       box.className = 'category-box';
       box.href = `category.html?cat=${encodeURIComponent(item.category)}`;
@@ -219,15 +217,15 @@ fetch('images/data.json')
     });
   });
 
-/* =========================
-   LOAD FEED (MIXED)
-========================= */
+// =========================
+// LOAD FEED DYNAMICALLY
+// =========================
 const feedDiv = document.getElementById("feed");
 
 fetch('images/data.json')
   .then(res => res.json())
   .then(data => {
-    data.sort(() => Math.random() - 0.5);
+    data.sort(() => Math.random() - 0.5); // random order
 
     data.forEach(item => {
       const img = document.createElement("img");
@@ -245,4 +243,5 @@ fetch('images/data.json')
 </script>
 
 </body>
-</html>
+</html>        
+      
