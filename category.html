@@ -25,7 +25,7 @@ fetch('images/data.json')
 
     categoryImages.forEach(item => {
       const img = document.createElement("img");
-      img.src = 'images/' + item.file; // uses file path from data.json
+      img.src = item.file; // uses file path from data.json
       img.alt = item.title;
 
       img.onerror = () => {
