@@ -181,12 +181,52 @@ fetch('images/data.json')
   });
 </script>
 
-// FEED DYNAMIC LOAD
-const feedDiv = document.getElementById("feed");
+<script>
+function enterSite() {
+  document.getElementById("ageGate").style.display = "none";
+}
+
+function exitSite() {
+  history.back();
+}
+
+/* =========================
+   LOAD CATEGORIES (TOP)
+========================= */
 fetch('images/data.json')
   .then(res => res.json())
   .then(data => {
-    // Shuffle for random display
+    const categoriesDiv = document.getElementById('categories');
+
+    data.sort(() => Math.random() - 0.5);
+
+    data.forEach(item => {
+      const box = document.createElement('a');
+      box.className = 'category-box';
+      box.href = `category.html?cat=${encodeURIComponent(item.category)}`;
+
+      const img = document.createElement('img');
+      img.src = 'images/' + item.file;
+      img.alt = item.title;
+
+      const name = document.createElement('div');
+      name.className = 'category-name';
+      name.textContent = item.category;
+
+      box.appendChild(img);
+      box.appendChild(name);
+      categoriesDiv.appendChild(box);
+    });
+  });
+
+/* =========================
+   LOAD FEED (MIXED)
+========================= */
+const feedDiv = document.getElementById("feed");
+
+fetch('images/data.json')
+  .then(res => res.json())
+  .then(data => {
     data.sort(() => Math.random() - 0.5);
 
     data.forEach(item => {
@@ -194,7 +234,6 @@ fetch('images/data.json')
       img.src = 'images/' + item.file;
       img.alt = item.title;
 
-      // Click to open lightbox
       img.onclick = () => {
         document.getElementById("lightboxImg").src = img.src;
         document.getElementById("lightbox").style.display = "flex";
@@ -203,6 +242,7 @@ fetch('images/data.json')
       feedDiv.appendChild(img);
     });
   });
+</script>
 
 </body>
 </html>
