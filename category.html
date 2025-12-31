@@ -1,121 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Category</title>
-
-<style>
-body {
-  margin: 0;
-  background: #0b0b0f;
-  color: #fff;
-  font-family: Arial, sans-serif;
-}
-
-header {
-  padding: 10px 15px;
-  border-bottom: 1px solid purple;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-header a {
-  color: #00aaff;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-h2 {
-  text-align: center;
-  margin: 15px 0;
-  text-transform: capitalize;
-}
-
-.feed {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 5px;
-  padding: 10px;
-}
-
-.feed img {
-  width: 100%;
-  border: 1px solid purple;
-  cursor: pointer;
-  object-fit: cover;
-}
-
-/* LIGHTBOX */
-#lightbox {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.95);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-#lightbox img {
-  max-width: 95%;
-  max-height: 95%;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-  <a href="index.html">← Home</a>
-  <a href="telegram.html">Telegram</a>
-</header>
-
-<h2 id="categoryTitle"></h2>
-
-<div class="feed" id="feed"></div>
-
-<!-- LIGHTBOX -->
-<div id="lightbox" onclick="this.style.display='none'">
-  <img id="lightboxImg" alt="Preview">
-</div>
-
 <script>
-// GET CATEGORY NAME FROM URL
+// GET CATEGORY NAME
 const params = new URLSearchParams(window.location.search);
 const category = params.get("cat") || "general";
 document.getElementById("categoryTitle").innerText = category;
 
-// LOAD IMAGES FOR THIS CATEGORY
-fetch('images/data.json')
-  .then(res => res.json())
-  .then(data => {
-    const feed = document.getElementById("feed");
+// LOAD CATEGORY IMAGES
+const feed = document.getElementById("feed");
 
-    // Filter data to only include images of the selected category
+fetch('images/data.json')
+  .then(res => {
+    console.log('Fetching data.json...', res);
+    return res.json();
+  })
+  .then(data => {
+    console.log('Data loaded:', data);
+
+    // Filter only images of this category
     const categoryImages = data.filter(item => item.category.toLowerCase() === category.toLowerCase());
+    console.log('Filtered category images:', categoryImages);
 
     if (categoryImages.length === 0) {
-      const msg = document.createElement("p");
-      msg.textContent = "No images found in this category.";
-      msg.style.textAlign = "center";
-      feed.appendChild(msg);
-      return;
+      feed.innerHTML = `<p style="text-align:center;color:red;">No images found for category: ${category}</p>`;
     }
 
-    // Shuffle images randomly
-    categoryImages.sort(() => Math.random() - 0.5);
-
-    // Add each image to the feed
     categoryImages.forEach(item => {
       const img = document.createElement("img");
-      img.src = 'images/' + item.file;
+      img.src = 'images/' + item.file; // uses file path from data.json
       img.alt = item.title;
 
       img.onerror = () => {
-        console.error("Failed to load:", img.src);
-        img.style.background = "red"; // highlight broken images
+        console.error('Category image failed to load:', img.src);
+        img.style.background = 'red';
       };
 
       img.onclick = () => {
@@ -126,15 +41,5 @@ fetch('images/data.json')
       feed.appendChild(img);
     });
   })
-  .catch(err => {
-    console.error("Failed to load data.json:", err);
-    const feed = document.getElementById("feed");
-    const msg = document.createElement("p");
-    msg.textContent = "Failed to load images.";
-    msg.style.textAlign = "center";
-    feed.appendChild(msg);
-  });
+  .catch(err => console.error('Error loading data.json:', err));
 </script>
-
-</body>
-</html>
