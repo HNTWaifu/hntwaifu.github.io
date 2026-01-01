@@ -1,1 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Category</title>
+<style>
+body { background:#0b0b0f; color:#fff; font-family:Arial,sans-serif; margin:0; }
+#feed { display:grid; grid-template-columns:repeat(2,1fr); gap:5px; padding:10px; }
+#feed img { width:100%; cursor:pointer; object-fit:cover; border:1px solid purple; }
+#lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.95); display:none; justify-content:center; align-items:center; z-index:10000; }
+#lightbox img { max-width:95%; max-height:95%; }
+#categoryTitle { text-align:center; font-size:20px; padding:10px; }
+</style>
+</head>
+<body>
 
+<h2 id="categoryTitle">Category</h2>
+<div id="feed"></div>
+
+<div id="lightbox" onclick="this.style.display='none'">
+  <img id="lightboxImg" alt="Preview">
+</div>
+
+<script>
+// GET CATEGORY NAME
+const params = new URLSearchParams(window.location.search);
+const category = params.get("cat") || "general";
+document.getElementById("categoryTitle").innerText = category;
+
+// LOAD CATEGORY IMAGES
+const feed = document.getElementById("feed");
+
+fetch('images/data.json')
+  .then(res => res.json())
+  .then(data => {
+    const categoryImages = data.filter(item => item.category.toLowerCase() === category.toLowerCase());
+
+    if (categoryImages.length === 0) {
+      feed.innerHTML = `<p style="text-align:center;color:red;">No images found for category: ${category}</p>`;
+      return;
+    }
+
+    categoryImages.forEach(item => {
+      const img = document.createElement("img");
+      img.src = item.file;
+      img.alt = item.title;
+
+      img.onerror = () => { console.warn('Failed image:', img.src); img.style.background='#111'; }
+
+      img.onclick = () => {
+        document.getElementById("lightboxImg").src = img.src;
+        document.getElementById("lightbox").style.display = "flex";
+      };
+
+      feed.appendChild(img);
+    });
+  })
+  .catch(err => console.error('Error loading category images:', err));
+</script>
+</body>
+</html>
