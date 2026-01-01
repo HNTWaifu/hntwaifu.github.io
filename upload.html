@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Upload Panel</title>
+</head>
+<body>
+
+<h2>Admin Upload Panel</h2>
+
+<!-- Select image -->
+<input type="file" id="imageFile"><br><br>
+
+<!-- Enter title -->
+<input type="text" id="title" placeholder="Title"><br><br>
+
+<!-- Select category -->
+<select id="category">
+  <option>Anal</option>
+  <option>Milf</option>
+  <option>Big Boobs</option>
+  <option>Solo</option>
+  <option>Couple</option>
+  <option>Futanari/Shemale</option>
+</select><br><br>
+
+<!-- Admin password for security -->
+<input type="password" id="adminPass" placeholder="Admin Password"><br><br>
+
+<!-- Upload button -->
+<button onclick="uploadImage()">Upload</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+// ------------------ CONFIG ------------------
+const supabaseUrl = 'https://djakmfyyjomtuyakpcdq.supabase.co'; // Replace with your Supabase Project URL
+const supabaseKey = 'djakmfyyjomtuyakpcdq';    // Replace with anon/public key
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+const ADMIN_PASSWORD = 'scar-III'; // Set a strong password
+// -------------------------------------------
+
+async function uploadImage() {
+  const password = document.getElementById('adminPass').value;
+  if(password !== ADMIN_PASSWORD) return alert('Wrong password!');
+
+  const file = document.getElementById('imageFile').files[0];
+  const title = document.getElementById('title').value;
+  const category = document.getElementById('category').value;
+
+  if(!file || !title) return alert('Please select image and enter title');
+
+  // 1️⃣ Upload image to Supabase Storage
+  const { data: storageData, error: storageError } = await supabase
+    .storage.from('category')  // bucket name
+    .upload(file.name, file, { upsert: true });
+
+  if(storageError) return alert(storageError.message);
+
+  // 2️⃣ Get public URL
+  const { publicURL, error: urlError } = supabase
+    .storage.from('category')
+    .getPublicUrl(file.name);
+  if(urlError) return alert(urlError.message);
+
+  // 3️⃣ Insert metadata into database
+  const { error: dbError } = await supabase
+    .from('images')
+    .insert([{ file: publicURL, title, category }]);
+
+  if(dbError) return alert(dbError.message);
+
+  alert('Upload successful!');
+
+  // Reset fields
+  document.getElementById('imageFile').value = '';
+  document.getElementById('title').value = '';
+}
+</script>
+
+</body>
+</html>
