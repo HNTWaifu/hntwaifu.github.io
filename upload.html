@@ -41,7 +41,10 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 const ADMIN_PASSWORD = 'scar-III'; // Set a strong password
 // -------------------------------------------
 
-async function uploadImage() {
+async function uploadImage() { 
+  
+  alert("Upload button clicked");
+  
   const password = document.getElementById('adminPass').value;
   if(password !== ADMIN_PASSWORD) return alert('Wrong password!');
 
