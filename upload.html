@@ -29,56 +29,70 @@
 <input type="password" id="adminPass" placeholder="Admin Password"><br><br>
 
 <!-- Upload button -->
-<button onclick="uploadImage()">Upload</button>
+<button type="button" onclick="uploadImage()">Upload</button>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ------------------ CONFIG ------------------
-const supabaseUrl = 'https://djakmfyyjomtuyakpcdq.supabase.co'; // Replace with your Supabase Project URL
-const supabaseKey = 'djakmfyyjomtuyakpcdq';    // Replace with anon/public key
+const supabaseUrl = 'https://djakmfyyjomtuyakpcdq.supabase.co'; // Supabase URL
+const supabaseKey = 'djakmfyyjomtuyakpcdq'; // Supabase anon/public key
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-const ADMIN_PASSWORD = 'scar-III'; // Set a strong password
+const ADMIN_PASSWORD = 'scar-III';
 // -------------------------------------------
 
 async function uploadImage() { 
-  
+
+  // ✅ Step 1: Check button click
   alert("Upload button clicked");
-  
+
+  // ✅ Step 2: Check password
   const password = document.getElementById('adminPass').value;
   if(password !== ADMIN_PASSWORD) return alert('Wrong password!');
 
-  const file = document.getElementById('imageFile').files[0];
-  const title = document.getElementById('title').value;
+  // ✅ Step 3: Get file, title, category
+  const fileInput = document.getElementById('imageFile');
+  const file = fileInput.files[0];
+  const title = document.getElementById('title').value.trim();
   const category = document.getElementById('category').value;
 
-  if(!file || !title) return alert('Please select image and enter title');
+  if(!file) return alert('Please select an image');
+  if(!title) return alert('Please enter a title');
 
-  // 1️⃣ Upload image to Supabase Storage
-  const { data: storageData, error: storageError } = await supabase
-    .storage.from('category')  // bucket name
-    .upload(file.name, file, { upsert: true });
+  try {
+    // 1️⃣ Upload image to Supabase Storage
+    const { data: storageData, error: storageError } = await supabase
+      .storage.from('category')  // your bucket name
+      .upload(file.name, file, { upsert: true });
 
-  if(storageError) return alert(storageError.message);
+    if(storageError) throw storageError;
 
-  // 2️⃣ Get public URL
-  const { publicURL, error: urlError } = supabase
-    .storage.from('category')
-    .getPublicUrl(file.name);
-  if(urlError) return alert(urlError.message);
+    // 2️⃣ Get public URL
+    const { data: urlData, error: urlError } = supabase
+      .storage.from('category')
+      .getPublicUrl(file.name);
 
-  // 3️⃣ Insert metadata into database
-  const { error: dbError } = await supabase
-    .from('images')
-    .insert([{ file: publicURL, title, category }]);
+    if(urlError) throw urlError;
+    const publicURL = urlData.publicUrl;
 
-  if(dbError) return alert(dbError.message);
+    // 3️⃣ Insert metadata into database
+    const { error: dbError } = await supabase
+      .from('images')
+      .insert([{ file: publicURL, title, category }]);
 
-  alert('Upload successful!');
+    if(dbError) throw dbError;
 
-  // Reset fields
-  document.getElementById('imageFile').value = '';
-  document.getElementById('title').value = '';
+    alert('✅ Upload successful!');
+
+    // Reset fields
+    fileInput.value = '';
+    document.getElementById('title').value = '';
+    document.getElementById('category').selectedIndex = 0;
+
+  } catch (err) {
+    alert('❌ Upload failed: ' + err.message);
+    console.error(err);
+  }
 }
 </script>
 
