@@ -34,23 +34,23 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ------------------ CONFIG ------------------
-const supabaseUrl = 'https://djakmfyyjomtuyakpcdq.supabase.co'; // Supabase URL
-const supabaseKey = 'djakmfyyjomtuyakpcdq'; // Supabase anon/public key
+const supabaseUrl = 'https://djakmfyyjomtuyakpcdq.supabase.co'; // Your Supabase URL
+const supabaseKey = 'djakmfyyjomtuyakpcdq'; // Your anon/public key
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-const ADMIN_PASSWORD = 'scar-III';
+const ADMIN_PASSWORD = 'scar-III'; // Admin password
 // -------------------------------------------
 
-async function uploadImage() { 
+async function uploadImage() {
 
-  // ✅ Step 1: Check button click
+  // Step 1: Check button click
   alert("Upload button clicked");
 
-  // ✅ Step 2: Check password
+  // Step 2: Check password
   const password = document.getElementById('adminPass').value;
   if(password !== ADMIN_PASSWORD) return alert('Wrong password!');
 
-  // ✅ Step 3: Get file, title, category
+  // Step 3: Get file, title, category
   const fileInput = document.getElementById('imageFile');
   const file = fileInput.files[0];
   const title = document.getElementById('title').value.trim();
@@ -62,18 +62,16 @@ async function uploadImage() {
   try {
     // 1️⃣ Upload image to Supabase Storage
     const { data: storageData, error: storageError } = await supabase
-      .storage.from('category')  // your bucket name
+      .storage.from('category')  // your bucket name (must be lowercase)
       .upload(file.name, file, { upsert: true });
 
     if(storageError) throw storageError;
 
     // 2️⃣ Get public URL
-    const { data: urlData, error: urlError } = supabase
-      .storage.from('category')
-      .getPublicUrl(file.name);
+    const { data } = supabase.storage.from('category').getPublicUrl(file.name);
+    const publicURL = data.publicUrl;
 
-    if(urlError) throw urlError;
-    const publicURL = urlData.publicUrl;
+    if(!publicURL) throw new Error('Could not get public URL');
 
     // 3️⃣ Insert metadata into database
     const { error: dbError } = await supabase
@@ -82,6 +80,7 @@ async function uploadImage() {
 
     if(dbError) throw dbError;
 
+    // 4️⃣ Success
     alert('✅ Upload successful!');
 
     // Reset fields
@@ -98,3 +97,4 @@ async function uploadImage() {
 
 </body>
 </html>
+
