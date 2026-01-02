@@ -29,72 +29,68 @@
 <input type="password" id="adminPass" placeholder="Admin Password"><br><br>
 
 <!-- Upload button -->
-<button type="button" onclick="uploadImage()">Upload</button>
+<button onclick="uploadImage()">Upload</button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ------------------ CONFIG ------------------
-const supabaseUrl = 'https://djakmfyyjomtuyakpcdq.supabase.co'; // Your Supabase URL
-const supabaseKey = 'djakmfyyjomtuyakpcdq'; // Your anon/public key
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  // ------------------ CONFIG ------------------
+  const supabaseUrl = 'https://wsizrkokfnohpvklqmit.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzaXpya29rZm5vaHB2a2xxbWl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNjc3MTIsImV4cCI6MjA4Mjk0MzcxMn0.Isj74iatm9uWKUAe1z--BzG_mdwav0in1GxBHj4RuFc';
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-const ADMIN_PASSWORD = 'scar-III'; // Admin password
-// -------------------------------------------
+  const ADMIN_PASSWORD = 'scar-III';
+  // -------------------------------------------
 
-async function uploadImage() {
+  async function uploadImage() { 
+    alert("Upload button clicked");
 
-  // Step 1: Check button click
-  alert("Upload button clicked");
+    const password = document.getElementById('adminPass').value;
+    if(password !== ADMIN_PASSWORD) return alert('Wrong password!');
 
-  // Step 2: Check password
-  const password = document.getElementById('adminPass').value;
-  if(password !== ADMIN_PASSWORD) return alert('Wrong password!');
+    const file = document.getElementById('imageFile').files[0];
+    const title = document.getElementById('title').value;
+    const category = document.getElementById('category').value;
 
-  // Step 3: Get file, title, category
-  const fileInput = document.getElementById('imageFile');
-  const file = fileInput.files[0];
-  const title = document.getElementById('title').value.trim();
-  const category = document.getElementById('category').value;
+    if(!file || !title) return alert('Please select image and enter title');
 
-  if(!file) return alert('Please select an image');
-  if(!title) return alert('Please enter a title');
+    try {
+      // 1️⃣ Upload image to Supabase Storage
+      const { data: storageData, error: storageError } = await supabase
+        .storage
+        .from('image')  // <-- YOUR bucket name
+        .upload(file.name, file, { upsert: true });
 
-  try {
-    // 1️⃣ Upload image to Supabase Storage
-    const { data: storageData, error: storageError } = await supabase
-      .storage.from('category')  // your bucket name (must be lowercase)
-      .upload(file.name, file, { upsert: true });
+      if(storageError) throw storageError;
 
-    if(storageError) throw storageError;
+      // 2️⃣ Get public URL
+      const { data: publicUrlData, error: urlError } = supabase
+        .storage
+        .from('image')  // <-- YOUR bucket name
+        .getPublicUrl(file.name);
 
-    // 2️⃣ Get public URL
-    const { data } = supabase.storage.from('category').getPublicUrl(file.name);
-    const publicURL = data.publicUrl;
+      if(urlError) throw urlError;
 
-    if(!publicURL) throw new Error('Could not get public URL');
+      const publicURL = publicUrlData.publicUrl;
 
-    // 3️⃣ Insert metadata into database
-    const { error: dbError } = await supabase
-      .from('images')
-      .insert([{ file: publicURL, title, category }]);
+      // 3️⃣ Insert metadata into database
+      const { error: dbError } = await supabase
+        .from('images')
+        .insert([{ file: publicURL, title, category }]);
 
-    if(dbError) throw dbError;
+      if(dbError) throw dbError;
 
-    // 4️⃣ Success
-    alert('✅ Upload successful!');
+      alert('Upload successful!');
 
-    // Reset fields
-    fileInput.value = '';
-    document.getElementById('title').value = '';
-    document.getElementById('category').selectedIndex = 0;
+      // Reset fields
+      document.getElementById('imageFile').value = '';
+      document.getElementById('title').value = '';
 
-  } catch (err) {
-    alert('❌ Upload failed: ' + err.message);
-    console.error(err);
+    } catch(err) {
+      console.error(err);
+      alert('Error: ' + err.message);
+    }
   }
-}
 </script>
 
 </body>
 </html>
-
