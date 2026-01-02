@@ -4,16 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Upload Panel</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background: #0b0b0f; color: #fff; }
+  input, select, button { padding: 10px; margin: 5px 0; width: 100%; max-width: 400px; }
+  button { background: purple; color: #fff; border: none; cursor: pointer; }
+  button:hover { background: #a020f0; }
+</style>
 </head>
 <body>
 
 <h2>Admin Upload Panel</h2>
 
 <!-- Select image -->
-<input type="file" id="imageFile"><br><br>
+<input type="file" id="imageFile" accept="image/*"><br>
 
 <!-- Enter title -->
-<input type="text" id="title" placeholder="Title"><br><br>
+<input type="text" id="title" placeholder="Title"><br>
 
 <!-- Select category -->
 <select id="category">
@@ -23,68 +29,75 @@
   <option>Solo</option>
   <option>Couple</option>
   <option>Futanari/Shemale</option>
-</select><br><br>
+</select><br>
 
 <!-- Admin password for security -->
-<input type="password" id="adminPass" placeholder="Admin Password"><br><br>
+<input type="password" id="adminPass" placeholder="Admin Password"><br>
 
 <!-- Upload button -->
-<button onclick="uploadImage()">Upload</button>
+<button type="button" onclick="uploadImage()">Upload</button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // ------------------ CONFIG ------------------
-  const supabaseUrl = 'https://wsizrkokfnohpvklqmit.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzaXpya29rZm5vaHB2a2xxbWl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNjc3MTIsImV4cCI6MjA4Mjk0MzcxMn0.Isj74iatm9uWKUAe1z--BzG_mdwav0in1GxBHj4RuFc';
+  const supabaseUrl = 'https://wsizrkokfnohpvklqmit.supabase.co'; // your Supabase project URL
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzaXpya29rZm5vaHB2a2xxbWl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNjc3MTIsImV4cCI6MjA4Mjk0MzcxMn0.Isj74iatm9uWKUAe1z--BzG_mdwav0in1GxBHj4RuFc'; // your anon key
   const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
   const ADMIN_PASSWORD = 'scar-III';
   // -------------------------------------------
 
-  async function uploadImage() { 
-    alert("Upload button clicked");
-
-    const password = document.getElementById('adminPass').value;
-    if(password !== ADMIN_PASSWORD) return alert('Wrong password!');
-
-    const file = document.getElementById('imageFile').files[0];
-    const title = document.getElementById('title').value;
-    const category = document.getElementById('category').value;
-
-    if(!file || !title) return alert('Please select image and enter title');
-
+  async function uploadImage() {
     try {
-      // 1️⃣ Upload image to Supabase Storage
+      // Step 1: Button click
+      alert("Upload button clicked");
+
+      // Step 2: Check admin password
+      const password = document.getElementById('adminPass').value;
+      if(password !== ADMIN_PASSWORD) return alert('Wrong password!');
+
+      // Step 3: Get file, title, category
+      const file = document.getElementById('imageFile').files[0];
+      const title = document.getElementById('title').value.trim();
+      const category = document.getElementById('category').value;
+
+      if(!file || !title) return alert('Please select image and enter title');
+
+      // Step 4: Upload image to Supabase Storage
+      alert('Uploading image to bucket...');
       const { data: storageData, error: storageError } = await supabase
         .storage
-        .from('image')  // <-- YOUR bucket name
+        .from('image') // bucket name
         .upload(file.name, file, { upsert: true });
 
       if(storageError) throw storageError;
+      alert('Image uploaded to bucket!');
 
-      // 2️⃣ Get public URL
+      // Step 5: Get public URL
       const { data: publicUrlData, error: urlError } = supabase
         .storage
-        .from('image')  // <-- YOUR bucket name
+        .from('image')
         .getPublicUrl(file.name);
 
       if(urlError) throw urlError;
+      const publicURL = publicUrlData?.publicUrl;
+      if(!publicURL) throw new Error('Failed to get public URL');
 
-      const publicURL = publicUrlData.publicUrl;
+      alert('Public URL generated!');
 
-      // 3️⃣ Insert metadata into database
+      // Step 6: Insert metadata into database
+      alert('Saving metadata to database...');
       const { error: dbError } = await supabase
         .from('images')
         .insert([{ file: publicURL, title, category }]);
 
       if(dbError) throw dbError;
 
-      alert('Upload successful!');
+      // Step 7: Success
+      alert('Upload successful! 🎉');
 
-      // Reset fields
+      // Step 8: Reset inputs
       document.getElementById('imageFile').value = '';
       document.getElementById('title').value = '';
-
     } catch(err) {
       console.error(err);
       alert('Error: ' + err.message);
