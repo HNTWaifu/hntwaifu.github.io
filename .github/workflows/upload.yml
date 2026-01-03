@@ -1,26 +1,26 @@
-name: Upload from Google Form
+name: Upload Images from Google Form
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # manual trigger
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/10 * * * *' # every 10 minutes
 
 jobs:
   upload:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
 
       - name: Install dependencies
-        run: |
-          npm install googleapis node-fetch @octokit/rest
+        run: npm install @octokit/rest googleapis node-fetch
 
       - name: Run upload script
-        run: node scripts/upload-from-form.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.UPLOAD_TOKEN }}  # <-- make sure this matches your secret name
+        run: node scripts/upload-from-form.mjs
