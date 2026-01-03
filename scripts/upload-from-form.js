@@ -1,74 +1,84 @@
-// ----------------- CONFIG -----------------
+// ---------------- CONFIG ----------------
 const { google } = require('googleapis');
 const fs = require('fs');
 const fetch = require('node-fetch');
 const { Octokit } = require('@octokit/rest');
 
-const GITHUB_REPO = 'hntwaifu/HNTWaifu'; // e.g., hntwaifu/HNTWaifu
-const GITHUB_BRANCH = 'main';
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // set in GitHub Actions
-const SHEET_ID = '1qVguCC4gSkIjHpuuGPpO_AaxJoxz0irrJxyJBXGSTRU'; // from Google Sheets URL
-const CATEGORY_FOLDER = 'images/category'; // bucket folder
-// ------------------------------------------
+const OWNER = 'hntwaifu';              // your GitHub username
+const REPO = 'HNTWaifu';               // EXACT repo name (case matters)
+const BRANCH = 'main';
 
-// Google Sheets setup
-const sheets = google.sheets('v4');
-const auth = new google.auth.GoogleAuth({
-  scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+const SHEET_ID = 'PASTE_YOUR_SHEET_ID_HERE';
+
+const BASE_FOLDER = 'images/category';
+
+// ---------------------------------------
+
+const octokit = new Octokit({
+  auth: process.env.GITHUB_TOKEN
 });
 
-// Octokit setup
-const octokit = new Octokit({ auth: GITHUB_TOKEN });
+const auth = new google.auth.GoogleAuth({
+  credentials: JSON.parse(fs.readFileSync('service-account.json', 'utf8')),
+  scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+});
 
-async function main() {
-  // 1️⃣ Get data from Google Sheet
+async function run() {
   const client = await auth.getClient();
+  const sheets = google.sheets({ version: 'v4', auth: client });
+
   const res = await sheets.spreadsheets.values.get({
-    auth: client,
     spreadsheetId: SHEET_ID,
-    range: 'Form Responses 1!A:C' // Title | Category | Image URL
+    range: 'Form Responses 1!A:C',
   });
 
-  const rows = res.data.values.slice(1); // skip header
+  const rows = res.data.values.slice(1);
+  if (!rows.length) {
+    console.log('No new rows');
+    return;
+  }
+
+  let dataJson = [];
+
   for (const [title, category, imageUrl] of rows) {
     if (!title || !category || !imageUrl) continue;
 
-    // 2️⃣ Download image
-    const response = await fetch(imageUrl);
-    const buffer = await response.arrayBuffer();
+    const safeTitle = title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    const safeCategory = category.toLowerCase().replace(/\s+/g, '-');
 
-    // 3️⃣ Commit image to GitHub
-    const path = `${CATEGORY_FOLDER}/${category.toLowerCase()}/${title.replace(/\s/g, '-')}.jpg`;
+    const imgRes = await fetch(imageUrl);
+    const buffer = await imgRes.buffer();
+
+    const path = `${BASE_FOLDER}/${safeCategory}/${safeTitle}.jpg`;
 
     await octokit.repos.createOrUpdateFileContents({
-      owner: GITHUB_REPO.split('/')[0],
-      repo: GITHUB_REPO.split('/')[1],
+      owner: OWNER,
+      repo: REPO,
       path,
       message: `Add image: ${title}`,
-      content: Buffer.from(buffer).toString('base64'),
-      branch: GITHUB_BRANCH
+      content: buffer.toString('base64'),
+      branch: BRANCH,
     });
 
-    console.log(`Uploaded ${title} to ${category}`);
-  }
+    dataJson.push({
+      title,
+      category,
+      file: path
+    });
 
-  // 4️⃣ Update data.json
-  let dataJson = [];
-  for (const [title, category, imageUrl] of rows) {
-    const publicUrl = `images/category/${category.toLowerCase()}/${title.replace(/\s/g, '-')}.jpg`;
-    dataJson.push({ file: publicUrl, title, category });
+    console.log(`Uploaded: ${title}`);
   }
 
   await octokit.repos.createOrUpdateFileContents({
-    owner: GITHUB_REPO.split('/')[0],
-    repo: GITHUB_REPO.split('/')[1],
+    owner: OWNER,
+    repo: REPO,
     path: 'images/data.json',
     message: 'Update data.json',
     content: Buffer.from(JSON.stringify(dataJson, null, 2)).toString('base64'),
-    branch: GITHUB_BRANCH
+    branch: BRANCH,
   });
 
-  console.log('data.json updated ✅');
+  console.log('data.json updated');
 }
 
-main().catch(console.error);
+run().catch(console.error);
