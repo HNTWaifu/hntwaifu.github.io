@@ -237,7 +237,10 @@ function loadFeed(data) {
   const feed = document.getElementById('feed');
   feed.innerHTML = '';
 
-  data.forEach(item => {
+  // 🔑 Filter out category cover images
+  const feedItems = data.filter(item => item.cover !== true);
+
+  feedItems.forEach(item => {
     const img = document.createElement('img');
     img.src = item.file;
     img.alt = item.title;
