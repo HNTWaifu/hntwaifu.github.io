@@ -160,10 +160,10 @@ header {
   <a class="telegram" href="telegram.html">Telegram</a>
 </header>
 
-<!-- DYNAMIC CATEGORIES -->
+<!-- CATEGORIES -->
 <div class="categories" id="categories"></div>
 
-<!-- DYNAMIC FEED -->
+<!-- HOMEPAGE FEED -->
 <div class="feed" id="feed"></div>
 
 <!-- LIGHTBOX -->
@@ -173,48 +173,90 @@ header {
 
 <script>
 // =========================
-// AGE VERIFICATION
+// AGE GATE
 // =========================
 function enterSite() {
   document.getElementById("ageGate").style.display = "none";
 }
-function exitSite() { history.back(); }
+function exitSite() {
+  history.back();
+}
 
 // =========================
-// LOAD CATEGORIES DYNAMICALLY
+// LOAD DATA.JSON
 // =========================
 fetch('images/data.json')
   .then(res => res.json())
   .then(data => {
-    const categoriesDiv = document.getElementById('categories');
+    if (!Array.isArray(data)) return;
+
+    // Shuffle for randomness
     data.sort(() => Math.random() - 0.5);
 
-    const uniqueCategories = [...new Set(data.map(item => item.category))];
-
-    uniqueCategories.forEach(cat => {
-      const firstItem = data.find(item => item.category === cat);
-      const box = document.createElement('a');
-      box.className = 'category-box';
-      box.href = `category.html?cat=${encodeURIComponent(cat)}`;
-
-      const img = document.createElement('img');
-      img.src = firstItem.file; // first image of category
-      img.alt = firstItem.title;
-
-      img.onerror = () => { img.style.background = '#111'; console.warn('Image failed:', img.src); }
-
-      const name = document.createElement('div');
-      name.className = 'category-name';
-      name.textContent = cat;
-
-      box.appendChild(img);
-      box.appendChild(name);
-      categoriesDiv.appendChild(box);
-    });
+    loadCategories(data);
+    loadFeed(data);
   })
-  .catch(err => console.error('Error loading categories:', err));
+  .catch(err => console.error('Failed to load data.json', err));
+
+// =========================
+// BUILD CATEGORIES
+// =========================
+function loadCategories(data) {
+  const categoriesDiv = document.getElementById('categories');
+  categoriesDiv.innerHTML = '';
+
+  const uniqueCategories = [...new Set(data.map(i => i.category))];
+
+  uniqueCategories.forEach(cat => {
+    const item = data.find(i => i.category === cat);
+    if (!item) return;
+
+    const box = document.createElement('a');
+    box.className = 'category-box';
+    box.href = `category.html?cat=${encodeURIComponent(cat)}`;
+
+    const img = document.createElement('img');
+    img.src = item.file;
+    img.alt = item.title;
+    img.onerror = () => img.style.background = '#111';
+
+    const name = document.createElement('div');
+    name.className = 'category-name';
+    name.textContent = cat;
+
+    box.appendChild(img);
+    box.appendChild(name);
+    categoriesDiv.appendChild(box);
+  });
+}
+
+// =========================
+// BUILD HOMEPAGE FEED
+// =========================
+function loadFeed(data) {
+  const feed = document.getElementById('feed');
+  feed.innerHTML = '';
+
+  data.forEach(item => {
+    const img = document.createElement('img');
+    img.src = item.file;
+    img.alt = item.title;
+    img.onclick = () => openLightbox(item.file);
+    img.onerror = () => img.style.display = 'none';
+    feed.appendChild(img);
+  });
+}
+
+// =========================
+// LIGHTBOX
+// =========================
+function openLightbox(src) {
+  const lightbox = document.getElementById('lightbox');
+  const img = document.getElementById('lightboxImg');
+  img.src = src;
+  lightbox.style.display = 'flex';
+}
 </script>
 
 </body>
-  </html>
-
+</html>
