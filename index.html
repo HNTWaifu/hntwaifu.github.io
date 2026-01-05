@@ -237,19 +237,28 @@ function loadFeed(data) {
   const feed = document.getElementById('feed');
   feed.innerHTML = '';
 
-  // 🔑 Filter out category cover images
-  const feedItems = data.filter(item => item.cover !== true);
+  // Filter out category cover images
+  const feedItems = data.filter(item => !item.cover);
 
   feedItems.forEach(item => {
+    const container = document.createElement('div');
+    container.className = 'feed-item';
+
     const img = document.createElement('img');
     img.src = item.file;
     img.alt = item.title;
     img.onclick = () => openLightbox(item.file);
     img.onerror = () => img.style.display = 'none';
-    feed.appendChild(img);
-  });
-}
 
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'feed-title';
+    titleDiv.textContent = item.title;
+
+    container.appendChild(img);
+    container.appendChild(titleDiv);
+    feed.appendChild(container);
+  });
+   }
 // =========================
 // LIGHTBOX
 // =========================
