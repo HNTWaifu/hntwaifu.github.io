@@ -6,9 +6,6 @@
 <title>NSFW AI Anime</title>
 
 <style>
-/* =========================
-   GENERAL STYLES
-========================= */
 body {
   margin: 0;
   background: #0b0b0f;
@@ -18,12 +15,9 @@ body {
 
 a { text-decoration: none; color: inherit; }
 
-/* =========================
-   HEADER
-========================= */
+/* HEADER */
 header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
   border-bottom: 1px solid purple;
@@ -34,15 +28,35 @@ header {
   cursor: pointer;
 }
 
+/* SEARCH BAR */
+.search-box {
+  margin: auto;
+  display: flex;
+  align-items: center;
+  border: 1px solid purple;
+  padding: 4px 8px;
+  background: #111;
+}
+
+.search-box span {
+  margin-right: 6px;
+}
+
+.search-box input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  width: 140px;
+}
+
+/* TELEGRAM */
 .telegram {
   color: #00aaff;
   font-weight: bold;
-  cursor: pointer;
 }
 
-/* =========================
-   AGE GATE
-========================= */
+/* AGE GATE */
 #ageGate {
   position: fixed;
   inset: 0;
@@ -60,11 +74,6 @@ header {
   max-width: 320px;
 }
 
-.age-box img {
-  width: 120px;
-  margin-bottom: 10px;
-}
-
 .age-btn {
   width: 100%;
   padding: 10px;
@@ -75,9 +84,7 @@ header {
   cursor: pointer;
 }
 
-/* =========================
-   CATEGORIES
-========================= */
+/* CATEGORIES */
 .categories {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -87,25 +94,15 @@ header {
 
 .category-box {
   border: 2px solid purple;
-  overflow: hidden;
 }
 
 .category-box img {
   width: 100%;
   height: 180px;
   object-fit: cover;
-  background: #000;
 }
 
-.category-name {
-  text-align: center;
-  padding: 5px;
-  font-size: 14px;
-}
-
-/* =========================
-   FEED
-========================= */
+/* FEED */
 .feed {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -117,12 +114,16 @@ header {
   width: 100%;
   border: 1px solid purple;
   cursor: pointer;
-  object-fit: cover;
 }
 
-/* =========================
-   LIGHTBOX
-========================= */
+/* MESSAGE */
+#message {
+  text-align: center;
+  padding: 20px;
+  color: #aaa;
+}
+
+/* LIGHTBOX */
 #lightbox {
   position: fixed;
   inset: 0;
@@ -145,7 +146,6 @@ header {
 <!-- AGE GATE -->
 <div id="ageGate">
   <div class="age-box">
-    <img src="images/logo/logo.png" alt="Logo">
     <p>You must be 18+</p>
     <button class="age-btn" onclick="enterSite()">I'm 18 or above – Enter</button>
     <button class="age-btn" onclick="exitSite()">I'm under 18 – Exit</button>
@@ -154,59 +154,59 @@ header {
 
 <!-- HEADER -->
 <header>
-  <a class="logo" href="">
-    <img src="images/logo/logo.png" alt="Logo" onclick="enterSite()">
+  <a class="logo" href="index.html">
+    <img src="images/logo/logo.png" alt="Logo">
   </a>
+
+  <div class="search-box">
+    <span>🔍</span>
+    <input type="text" id="searchInput" placeholder="Search..." oninput="handleSearch()">
+  </div>
+
   <a class="telegram" href="telegram.html">Telegram</a>
 </header>
 
-<!-- CATEGORIES -->
 <div class="categories" id="categories"></div>
-
-<!-- HOMEPAGE FEED -->
+<div id="message"></div>
 <div class="feed" id="feed"></div>
 
 <!-- LIGHTBOX -->
-<div id="lightbox" onclick="this.style.display='none'">
-  <img id="lightboxImg" alt="Preview">
+<div id="lightbox" onclick="closeLightbox()">
+  <img id="lightboxImg">
 </div>
 
 <script>
-// =========================
+let ALL_DATA = [];
+let CURRENT_VIEW = 'home';
+
+const ILLEGAL_WORDS = [
+  'child', 'minor', 'rape', 'revenge', 'underage'
+];
+
 // AGE GATE
-// =========================
 function enterSite() {
   document.getElementById("ageGate").style.display = "none";
+  history.replaceState({view:'home'}, '', '');
 }
 function exitSite() {
   history.back();
 }
 
-// =========================
-// LOAD DATA.JSON
-// =========================
+// LOAD DATA
 fetch('images/data.json')
   .then(res => res.json())
   .then(data => {
-    if (!Array.isArray(data)) return;
+    ALL_DATA = data.sort(() => Math.random() - 0.5);
+    loadCategories(ALL_DATA);
+    loadFeed(ALL_DATA);
+  });
 
-    // Shuffle for randomness
-    data.sort(() => Math.random() - 0.5);
-
-    loadCategories(data);
-    loadFeed(data);
-  })
-  .catch(err => console.error('Failed to load data.json', err));
-
-// =========================
 // BUILD CATEGORIES
-// =========================
 function loadCategories(data) {
   const categoriesDiv = document.getElementById('categories');
   categoriesDiv.innerHTML = '';
 
   const uniqueCategories = [...new Set(data.map(i => i.category))];
-
   uniqueCategories.forEach(cat => {
     const item = data.find(i => i.category === cat);
     if (!item) return;
@@ -215,59 +215,72 @@ function loadCategories(data) {
     box.className = 'category-box';
     box.href = `category.html?cat=${encodeURIComponent(cat)}`;
 
-    const img = document.createElement('img');
-    img.src = item.file;
-    img.alt = item.title;
-    img.onerror = () => img.style.background = '#111';
-
-    const name = document.createElement('div');
-    name.className = 'category-name';
-    name.textContent = cat;
-
-    box.appendChild(img);
-    box.appendChild(name);
+    box.innerHTML = `
+      <img src="${item.file}">
+      <div style="text-align:center;padding:5px;">${cat}</div>
+    `;
     categoriesDiv.appendChild(box);
   });
 }
 
-// =========================
-// BUILD HOMEPAGE FEED
-// =========================
+// BUILD FEED
 function loadFeed(data) {
   const feed = document.getElementById('feed');
+  const msg = document.getElementById('message');
   feed.innerHTML = '';
+  msg.innerHTML = '';
 
-  // Filter out category cover images
-  const feedItems = data.filter(item => !item.cover);
+  if (!data.length) {
+    msg.textContent = 'No results found.';
+    return;
+  }
 
-  feedItems.forEach(item => {
-    const container = document.createElement('div');
-    container.className = 'feed-item';
+  data.forEach(item => {
+    if (item.cover) return;
 
     const img = document.createElement('img');
     img.src = item.file;
     img.alt = item.title;
     img.onclick = () => openLightbox(item.file);
-    img.onerror = () => img.style.display = 'none';
-
-    const titleDiv = document.createElement('div');
-    titleDiv.className = 'feed-title';
-    titleDiv.textContent = item.title;
-
-    container.appendChild(img);
-    container.appendChild(titleDiv);
-    feed.appendChild(container);
+    feed.appendChild(img);
   });
-   }
-// =========================
-// LIGHTBOX
-// =========================
-function openLightbox(src) {
-  const lightbox = document.getElementById('lightbox');
-  const img = document.getElementById('lightboxImg');
-  img.src = src;
-  lightbox.style.display = 'flex';
 }
+
+// SEARCH
+function handleSearch() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const msg = document.getElementById('message');
+
+  if (ILLEGAL_WORDS.some(w => q.includes(w))) {
+    msg.textContent = '⚠️ This search is not allowed.';
+    document.getElementById('feed').innerHTML = '';
+    return;
+  }
+
+  const results = ALL_DATA.filter(i =>
+    i.title.toLowerCase().includes(q) ||
+    i.category.toLowerCase().includes(q)
+  );
+
+  loadFeed(results);
+}
+
+// LIGHTBOX
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').style.display = 'flex';
+  history.pushState({view:'image'}, '', '');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').style.display = 'none';
+  history.back();
+}
+
+// BACK BUTTON FIX
+window.onpopstate = () => {
+  document.getElementById('lightbox').style.display = 'none';
+};
 </script>
 
 </body>
